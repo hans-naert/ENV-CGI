@@ -1,9 +1,15 @@
-system preparation:
+## System preparation:
 1) sudo ./setup_apache.sh
 2) sudo ./setup_acl.sh
 
-build and place result in /usr/cgi-bin:
+## Build and copys results:
 ./build.sh
 
-open websit:
-http://hostname/cgi-bin/ENV-CGI
+open website: http://hostname/ENV-CGI
+
+## Parsing of received Json data with C Library function "strsep"
+POST data: {"message":"Hi Vives","input-text":"test"}  
+parsed 0: "message"  
+parsed 1: "Hi Vives"  
+parsed 2: "input-text"  
+parsed 3: "test"  

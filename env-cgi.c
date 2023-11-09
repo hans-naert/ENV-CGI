@@ -110,34 +110,59 @@ static void get_environment (env_var * env_vars, int n_env_vars)
 
 int 
 main ()
-{
+{    
     int i;
     int n_env_vars;
     env_var * env_vars;
 
-    n_env_vars = count_env_vars ();
-    env_vars = calloc (n_env_vars, sizeof (env_var));
-    if (! env_vars) {
-        cgi_fail ("out of memory");
+    if(!strcmp(getenv("REQUEST_METHOD"),"GET"))
+    {
+        n_env_vars = count_env_vars ();
+        env_vars = calloc (n_env_vars, sizeof (env_var));
+        if (! env_vars) {
+            cgi_fail ("out of memory");
+        }
+        get_environment (env_vars, n_env_vars);
+        print_http_header ("text/html");
+        printf ("<h1>Environment variables</h1>\n");
+        printf ("<table>\n");
+        for (i = 0; i < n_env_vars; i++) {
+        printf ("<tr><td>%d", i);
+        printf ("<td>%s<td>%s",
+            env_vars[i].name,
+            env_vars[i].value);
+        }
+        printf ("</table>");
+        free (env_vars);
+        //REQUEST_METHOD environment variable
+        printf("The environment variable REQUEST_METHOD is %s\n",getenv("REQUEST_METHOD"));       
+        //readout stdin file - otherwise error when data is posted...
+        fflush(stdout);
     }
-    get_environment (env_vars, n_env_vars);
-    print_http_header ("text/html");
-    printf ("<h1>Environment variables</h1>\n");
-    printf ("<table>\n");
-    for (i = 0; i < n_env_vars; i++) {
-	printf ("<tr><td>%d", i);
-	printf ("<td>%s<td>%s",
-		env_vars[i].name,
-		env_vars[i].value);
+    else
+    {
+        char *line = NULL;
+        size_t len = 0;
+        ssize_t read;
+
+        print_http_header ("application/json");
+        
+        while ((read = getline(&line, &len, stdin)) != -1) {
+            char *token;
+            char *search = " ";
+            int i=0;
+            printf("Retrieved line of length %zu :\n", read);
+            printf("%s\n", line);
+
+            while ((token = strsep(&line, "\"{}:,\n\r"))) 
+            {
+                if(strlen(token)>0)
+                    printf("parsed %d: \"%s\"\n",i++,token);
+            }
+            
+                           
+            free(line);    
+        }
     }
-    printf ("</table>");
-    free (env_vars);
-    //REQUEST_METHOD environment variable
-    printf("The environment variable REQUEST_METHOD is %s\n",getenv("REQUEST_METHOD"));       
-    //readout stdin file - otherwise error when data is posted...
-    fflush(stdout);
-    char ch;
-    while(read(STDIN_FILENO,&ch,1))
-        write(STDOUT_FILENO,&ch,1);        
     return 0;
 }
